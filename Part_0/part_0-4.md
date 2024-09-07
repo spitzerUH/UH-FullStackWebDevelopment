@@ -1,3 +1,5 @@
+# Part 0.4
+
 Here you can find the sequence diagram for the first example:
 
 ```mermaid
@@ -11,7 +13,7 @@ sequenceDiagram
     Note left of server: The note described in the payload is added to the data.json in the backend
     server-->>-browser: Response code 302: which means redirecting to the page defined in the header
 
-    Note over browser,server: In this case the notes page again. The process is the same as before (example part 0.4)
+    Note over browser,server: In this case the notes page gets reloaded. The process is the same as before (example part 0.4)
 
     browser->>+server: GET https://studies.cs.helsinki.fi/exampleapp/notes
     server-->>-browser: HTML document
