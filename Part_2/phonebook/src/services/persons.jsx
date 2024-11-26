@@ -1,21 +1,22 @@
 import axios from "axios";
-const serverUrl = "http://localhost:3001/persons";
+const serverUrl = "/";
+const apiUrl = `${serverUrl}api/persons`;
 
 const getAll = () => {
-    return axios.get(serverUrl);
+    return axios.get(apiUrl);
 };
 
 const create = (newPerson) => {
-    return axios.post("http://localhost:3001/persons", newPerson);
+    return axios.post(apiUrl, newPerson);
 };
 
 const update = (id, newPerson) => {
-    return axios.put(`http://localhost:3001/persons/${id}`, newPerson);
+    return axios.put(`${apiUrl}/${id}`, newPerson);
 };
 
 const remove = (persion) => {
     if (window.confirm(`Delete ${persion.name}?`)) {
-        return axios.delete(`http://localhost:3001/persons/${persion.id}`);
+        return axios.delete(`${apiUrl}/${persion.id}`);
     }
 };
 
