@@ -110,7 +110,14 @@ const AddPhonebookEntry = ({ persons, setPersons, setNotificationMessage }) => {
                             `${newName} successfully added to phonebook.`,
                             setNotificationMessage
                         )
-                    );
+                    )
+                    .catch((error) => {
+                        triggerNotification(
+                            error.response.data.error,
+                            setNotificationMessage,
+                            "error"
+                        );
+                    });
             } else {
                 if (
                     confirm(
@@ -130,7 +137,7 @@ const AddPhonebookEntry = ({ persons, setPersons, setNotificationMessage }) => {
                         )
                         .catch((err) => {
                             triggerNotification(
-                                `Information of ${newName} has already been removed from server`,
+                                err.response.data.error,
                                 setNotificationMessage,
                                 "error"
                             );
