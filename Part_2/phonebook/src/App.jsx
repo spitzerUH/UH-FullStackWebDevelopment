@@ -1,13 +1,64 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import personService from "./services/persons";
 
-const PhonebookEntries = ({ persons }) =>
-    persons.map((p) => <PhonebookEntry key={p.name} person={p} />);
+function triggerNotification(
+    message,
+    setNotificationMessage,
+    type = "success"
+) {
+    setNotificationMessage({ message: message, type: type });
+    setTimeout(() => {
+        setNotificationMessage(null);
+    }, 5000);
+}
 
-const PhonebookEntry = ({ person }) => (
-    <p>
-        {person.name} {person.number}
-    </p>
-);
+const Notification = ({ notification }) => {
+    if (notification === null) {
+        return null;
+    }
+
+    const style = {
+        position: "fixed",
+        left: 0,
+        top: 0,
+        color: "white",
+        backgroundColor: notification.type === "success" ? "green" : "red",
+        fontSize: 16,
+        padding: 4,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
+        height: "32px",
+    };
+
+    return <div style={style}>{notification.message}</div>;
+};
+
+const PhonebookEntries = ({ persons, setDeletedPerson }) => {
+    const onDeleteClicked = (person) => {
+        personService.remove(person).then(() => {
+            setDeletedPerson(person);
+        });
+    };
+
+    return persons.map((p) => (
+        <PhonebookEntry
+            key={p.id}
+            person={p}
+            onDeleteClicked={onDeleteClicked}
+        />
+    ));
+};
+
+const PhonebookEntry = ({ person, onDeleteClicked }) => {
+    return (
+        <p>
+            {person.name} {person.number}{" "}
+            <button onClick={() => onDeleteClicked(person)}>delete</button>
+        </p>
+    );
+};
 
 const SearchPerson = ({ allPersons, setFilteredPersons }) => {
     const onFilteredNameChanged = (event) => {
@@ -27,7 +78,7 @@ const SearchPerson = ({ allPersons, setFilteredPersons }) => {
     );
 };
 
-const AddPhonebookEntry = ({ persons, setPersons }) => {
+const AddPhonebookEntry = ({ persons, setPersons, setNotificationMessage }) => {
     const [newName, setNewName] = useState("");
     const [newNumber, setNewNumber] = useState("");
 
@@ -43,13 +94,50 @@ const AddPhonebookEntry = ({ persons, setPersons }) => {
         event.preventDefault();
 
         if (newName && newNumber) {
-            if (!persons.map((p) => p.name).includes(newName)) {
+            const existingPersion = persons.find(
+                (p) => p.name.toLowerCase() === newName.toLowerCase()
+            );
+
+            if (!existingPersion) {
                 const newPersons = [...persons];
-                newPersons.push({ name: newName, number: newNumber });
+                const newPerson = { name: newName, number: newNumber };
+                newPersons.push(newPerson);
                 setPersons(newPersons);
+                personService
+                    .create(newPerson)
+                    .then(() =>
+                        triggerNotification(
+                            `${newName} successfully added to phonebook.`,
+                            setNotificationMessage
+                        )
+                    );
             } else {
-                alert(`${newName} is already added to phonebook`);
+                if (
+                    confirm(
+                        `${newName} is already added to phonebook, replace the old number with a new one?`
+                    )
+                ) {
+                    personService
+                        .update(existingPersion.id, {
+                            name: newName,
+                            number: newNumber,
+                        })
+                        .then(() =>
+                            triggerNotification(
+                                `${newName} successfully updated.`,
+                                setNotificationMessage
+                            )
+                        )
+                        .catch((err) => {
+                            triggerNotification(
+                                `Information of ${newName} has already been removed from server`,
+                                setNotificationMessage,
+                                "error"
+                            );
+                        });
+                }
             }
+
             setNewName("");
             setNewNumber("");
         } else {
@@ -73,27 +161,41 @@ const AddPhonebookEntry = ({ persons, setPersons }) => {
 };
 
 const App = () => {
-    const [persons, setPersons] = useState([
-        { name: "Arto Hellas", number: "040-123456", id: 1 },
-        { name: "Ada Lovelace", number: "39-44-5323523", id: 2 },
-        { name: "Dan Abramov", number: "12-43-234345", id: 3 },
-        { name: "Mary Poppendieck", number: "39-23-6423122", id: 4 },
-    ]);
-
+    const [deletedPerson, setDeletedPerson] = useState(null);
+    const [persons, setPersons] = useState([]);
     const [filteredPersons, setFilteredPersons] = useState(persons);
+    const [notification, setNotification] = useState(null);
+
+    useEffect(() => {
+        personService.getAll().then((res) => {
+            const tempPersons = res.data;
+
+            setPersons(tempPersons);
+            setFilteredPersons(tempPersons);
+        });
+    }, [deletedPerson, notification]);
 
     return (
         <div>
+            <Notification notification={notification} />
             <h2>Phonebook</h2>
             <SearchPerson
                 allPersons={persons}
                 setFilteredPersons={setFilteredPersons}
             />
+
             <h3>Add a new</h3>
-            <AddPhonebookEntry persons={persons} setPersons={setPersons} />
+            <AddPhonebookEntry
+                persons={persons}
+                setPersons={setPersons}
+                setNotificationMessage={setNotification}
+            />
 
             <h3>Numbers</h3>
-            <PhonebookEntries persons={filteredPersons} />
+            <PhonebookEntries
+                persons={filteredPersons}
+                setDeletedPerson={setDeletedPerson}
+            />
         </div>
     );
 };
