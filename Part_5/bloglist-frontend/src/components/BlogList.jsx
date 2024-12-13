@@ -2,7 +2,7 @@ import React from 'react';
 import blogService from '../services/blogs';
 import Blog from './Blog';
 
-const BlogList = ({ blogs, setNotification, setReload }) => {
+const BlogList = ({ user, blogs, setNotification, setReload }) => {
 
     const handleLike = (blog) => {
         blog.likes++;
@@ -39,7 +39,7 @@ const BlogList = ({ blogs, setNotification, setReload }) => {
     return (
         <div>
             {blogs.map(blog =>
-                <Blog key={blog.id} blog={blog} handleLike={handleLike} handleDelete={handleDelete} />
+                <Blog key={blog.id} user={user} blog={blog} handleLike={handleLike} handleDelete={handleDelete} />
             )}
         </div>
     )

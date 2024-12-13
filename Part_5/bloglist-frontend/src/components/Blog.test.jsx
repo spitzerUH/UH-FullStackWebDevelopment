@@ -11,12 +11,13 @@ describe('Blog and CreateBlog tests', () => {
         url: 'http://testurl.com',
         likes: 5,
         user: {
+            username: "user",
             name: 'Test User'
         }
     };
 
     test('only title and author at the beginning', async () => {
-        const { container } = render(<Blog blog={blog} handleLike={() => { }} handleDelete={() => { }} />);
+        const { container } = render(<Blog user={blog.user} blog={blog} handleLike={() => { }} handleDelete={() => { }} />);
         const div = container.querySelector('.blog-details');
         expect(div).toBeNull();
         expect(screen.queryByText('http://testurl.com')).toBeNull();
@@ -24,7 +25,7 @@ describe('Blog and CreateBlog tests', () => {
     });
 
     test('all details after visible click', async () => {
-        const { container } = render(<Blog blog={blog} handleLike={() => { }} handleDelete={() => { }} />);
+        const { container } = render(<Blog user={blog.user} blog={blog} handleLike={() => { }} handleDelete={() => { }} />);
 
         const user = userEvent.setup()
         const button = screen.getByText('view');
@@ -42,7 +43,7 @@ describe('Blog and CreateBlog tests', () => {
 
         const mockHandler = vi.fn()
 
-        render(<Blog blog={blog} handleLike={mockHandler} handleDelete={() => { }} />);
+        render(<Blog user={blog.user} blog={blog} handleLike={mockHandler} handleDelete={() => { }} />);
 
         const user = userEvent.setup()
         const viewButton = screen.getByText('view');

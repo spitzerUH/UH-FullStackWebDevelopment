@@ -27,7 +27,7 @@ const App = () => {
   }, [reload])
 
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggednBlogUser')
+    const loggedUserJSON = window.localStorage.getItem('loggedInBlogUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
       setUser(user)
@@ -59,15 +59,15 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedInBlogUser')
+    blogService.setToken(null)
     setUser(null)
   }
 
   const createBlog = async (blogToCreate) => {
-
     try {
       const newBlog = await blogService.create(blogToCreate)
 
-      setBlogs(blogs.concat(newBlog))
+      setReload(newBlog)
       setNotification({ message: `a new blog ${newBlog.title} by ${newBlog.author} added`, isError: false })
       setTimeout(() => {
         setNotification(null)
@@ -87,7 +87,7 @@ const App = () => {
   };
 
 
-  if (user === null) {
+  if (!user) {
     return (
       <div>
         <h2>Log in to application</h2>
@@ -110,7 +110,7 @@ const App = () => {
         <button onClick={() => setBlogCreationVisible(false)}>cancel</button>
       </div>
 
-      <BlogList blogs={blogs} setNotification={setNotification} setReload={setReload} />
+      <BlogList user={user} blogs={blogs} setNotification={setNotification} setReload={setReload} />
     </div>
     )
   }
